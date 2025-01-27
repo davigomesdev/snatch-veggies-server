@@ -17,9 +17,9 @@ import { LandSchema } from '@modules/land/infrastructure/mongo/land-mongo.schema
 import { LandRepository } from '@modules/land/domain/land.repository';
 import { LandMongoRepository } from '@modules/land/infrastructure/mongo/land-mongo.repository';
 
-import { FishSchema } from '@modules/Fish/infrastructure/mongo/fish-mongo.schema';
-import { FishRepository } from '@modules/Fish/domain/fish.repository';
-import { FishMongoRepository } from '@modules/Fish/infrastructure/mongo/fish-mongo.repository';
+import { FishSchema } from '@modules/fish/infrastructure/mongo/fish-mongo.schema';
+import { FishRepository } from '@modules/fish/domain/fish.repository';
+import { FishMongoRepository } from '@modules/fish/infrastructure/mongo/fish-mongo.repository';
 
 import { CreateFishInventoryUseCase } from '../application/usecases/create-fish-inventory.usecase';
 import { SaleFishInventoryUseCase } from '../application/usecases/sale-fish-inventory.usecase';
