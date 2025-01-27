@@ -68,11 +68,11 @@ export namespace CreateLandUseCase {
 
           const airBlock = await this.blockRepository.find({ index: 0 });
           const plowedDirtBlock = await this.blockRepository.find({ index: 2 });
-          const grassBlock = await this.blockRepository.find({ index: 3 });
-          const grassClumpBlock = await this.blockRepository.find({ index: 4 });
-          const grassBladesBlock = await this.blockRepository.find({ index: 5 });
-          const grassCoverBlock = await this.blockRepository.find({ index: 6 });
-          const sandBlock = await this.blockRepository.find({ index: 7 });
+          const grassBlock = await this.blockRepository.find({ index: 4 });
+          const grassClumpBlock = await this.blockRepository.find({ index: 5 });
+          const grassBladesBlock = await this.blockRepository.find({ index: 6 });
+          const grassCoverBlock = await this.blockRepository.find({ index: 7 });
+          const sandBlock = await this.blockRepository.find({ index: 8 });
 
           const flowerDecoration = await this.decorationRepository.find({ index: 0 });
           const flowersDecoration = await this.decorationRepository.find({ index: 1 });
