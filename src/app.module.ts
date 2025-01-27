@@ -14,7 +14,7 @@ import { DecorationModule } from '@modules/decoration/adapters/decoration.module
 import { FishModule } from '@modules/fish/adapters/fish.module';
 import { BlockInventoryModule } from '@modules/block-inventory/adapters/block-inventory.module';
 import { StructInventoryModule } from '@modules/struct-inventory/adapters/struct-inventory.module';
-import { DecorationInventoryModule } from '@modules/decoration-inventory/adapters/Decoration-inventory.module';
+import { DecorationInventoryModule } from '@modules/decoration-inventory/adapters/decoration-inventory.module';
 import { PlantInventoryModule } from '@modules/plant-inventory/adapters/plant-inventory.module';
 import { FishInventoryModule } from '@modules/fish-inventory/adapters/fish-inventory.module';
 
