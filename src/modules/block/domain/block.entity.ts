@@ -92,6 +92,7 @@ export class BlockEntity extends Entity<BlockProps> {
     this.index = props.index;
     this.name = props.name;
     this.price = props.price;
+    this.limit = props.limit;
     this.type = props.type;
     this.isVisible = props.isVisible;
 
