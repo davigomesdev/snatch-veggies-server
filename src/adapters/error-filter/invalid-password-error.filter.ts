@@ -1,0 +1,17 @@
+import { InvalidPasswordError } from '@domain/errors/invalid-password-error';
+import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
+import { FastifyReply } from 'fastify';
+
+@Catch(InvalidPasswordError)
+export class InvalidPasswordErrorFilter implements ExceptionFilter {
+  public catch(exception: InvalidPasswordError, host: ArgumentsHost): void {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<FastifyReply>();
+
+    response.status(422).send({
+      statusCode: 422,
+      error: 'Unprocessable Entity',
+      message: exception.message,
+    });
+  }
+}
