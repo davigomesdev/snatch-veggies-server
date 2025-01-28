@@ -1,5 +1,3 @@
-import { TVector2 } from '@core/types/vector2.type';
-
 import { ClientPacketTypeEnum } from '@core/enums/packets-type.enum';
 
 import { WsValidationPipe } from '@domain/validators/ws-validation-pipe';
@@ -17,6 +15,11 @@ import {
 } from '@nestjs/websockets';
 
 import { JwtWsGuard } from '@application/guards/jwt-ws-guard';
+
+import { PlantInventoryController } from '@modules/plant-inventory/adapters/plant-inventory.controller';
+import { BlockInventoryController } from '@modules/block-inventory/adapters/block-inventory.controller';
+import { StructInventoryController } from '@modules/struct-inventory/adapters/struct-inventory.controller';
+import { DecorationInventoryController } from '@modules/decoration-inventory/adapters/decoration-inventory.controller';
 
 import { CreateBlockLandUseCase } from '@modules/land/application/usecases/create-block-land.usecase';
 import { CreateStructBlockLandUseCase } from '@modules/land/application/usecases/create-struct-block-land.usecase';
@@ -37,6 +40,11 @@ import { HarvestPlantBlockLandDTO } from '@modules/land/application/dtos/harvest
 import { TheftPlantBlockLandDTO } from '@modules/land/application/dtos/theft-plant-block-land.dto';
 import { DeleteStructBlockLandDTO } from '@modules/land/application/dtos/delete-struct-block-land.dto';
 import { DeleteDecorationBlockLandDTO } from '@modules/land/application/dtos/delete-decoration-block-land.dto';
+
+import { PlantInventoryPresenter } from '@modules/plant-inventory/adapters/plant-inventory.presenter';
+import { BlockInventoryPresenter } from '@modules/block-inventory/adapters/block-inventory.presenter';
+import { StructInventoryPresenter } from '@modules/struct-inventory/adapters/struct-inventory.presenter';
+import { DecorationInventoryPresenter } from '@modules/decoration-inventory/adapters/decoration-inventory.presenter';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 @UseFilters(
@@ -69,14 +77,24 @@ export class WebSocketServerGateway {
   public async createBlockLand(
     @ConnectedSocket() client: any,
     @MessageBody() data: CreateBlockLandDTO,
-  ): Promise<TVector2> {
-    const { id } = client.data.user;
-    await this.createBlockLandUseCase.execute({
+  ): Promise<{
+    newBlockInventory: BlockInventoryPresenter;
+    oldBlockInventory: BlockInventoryPresenter;
+  }> {
+    const { id } = client.user;
+    const output = await this.createBlockLandUseCase.execute({
       userId: id,
       ...data,
     });
 
-    return data.blockPos;
+    return {
+      newBlockInventory: BlockInventoryController.blockInventoryToResponse(
+        output.newBlockInventory,
+      ),
+      oldBlockInventory: BlockInventoryController.blockInventoryToResponse(
+        output.oldBlockInventory,
+      ),
+    };
   }
 
   @UseGuards(JwtWsGuard)
@@ -84,13 +102,13 @@ export class WebSocketServerGateway {
   public async createStructBlockLand(
     @ConnectedSocket() client: any,
     @MessageBody() data: CreateStructBlockLandDTO,
-  ): Promise<TVector2> {
-    const { id } = client.data.user;
-    await this.createStructBlockLandUseCase.execute({
+  ): Promise<StructInventoryPresenter> {
+    const { id } = client.user;
+    const output = await this.createStructBlockLandUseCase.execute({
       userId: id,
       ...data,
     });
-    return data.blockPos;
+    return StructInventoryController.structInventoryToResponse(output);
   }
 
   @UseGuards(JwtWsGuard)
@@ -98,13 +116,13 @@ export class WebSocketServerGateway {
   public async createDecorationBlockLand(
     @ConnectedSocket() client: any,
     @MessageBody() data: CreateDecorationBlockLandDTO,
-  ): Promise<TVector2> {
-    const { id } = client.data.user;
-    await this.createDecorationBlockLandUseCase.execute({
+  ): Promise<DecorationInventoryPresenter> {
+    const { id } = client.user;
+    const output = await this.createDecorationBlockLandUseCase.execute({
       userId: id,
       ...data,
     });
-    return data.blockPos;
+    return DecorationInventoryController.decorationInventoryToResponse(output);
   }
 
   @UseGuards(JwtWsGuard)
@@ -112,13 +130,13 @@ export class WebSocketServerGateway {
   public async createPlantBlockLand(
     @ConnectedSocket() client: any,
     @MessageBody() data: CreatePlantBlockLandDTO,
-  ): Promise<TVector2> {
-    const { id } = client.data.user;
-    await this.createPlantBlockLandUseCase.execute({
+  ): Promise<PlantInventoryPresenter> {
+    const { id } = client.user;
+    const output = await this.createPlantBlockLandUseCase.execute({
       userId: id,
       ...data,
     });
-    return data.blockPos;
+    return PlantInventoryController.plantInventoryToResponse(output);
   }
 
   @UseGuards(JwtWsGuard)
@@ -126,13 +144,13 @@ export class WebSocketServerGateway {
   public async mintStructBlockLand(
     @ConnectedSocket() client: any,
     @MessageBody() data: MintStructBlockLandDTO,
-  ): Promise<TVector2> {
-    const { id } = client.data.user;
-    await this.mintStructBlockLandUseCase.execute({
+  ): Promise<StructInventoryPresenter> {
+    const { id } = client.user;
+    const output = await this.mintStructBlockLandUseCase.execute({
       userId: id,
       ...data,
     });
-    return data.blockPos;
+    return StructInventoryController.structInventoryToResponse(output);
   }
 
   @UseGuards(JwtWsGuard)
@@ -140,13 +158,13 @@ export class WebSocketServerGateway {
   public async harvestPlantBlockLand(
     @ConnectedSocket() client: any,
     @MessageBody() data: HarvestPlantBlockLandDTO,
-  ): Promise<TVector2> {
-    const { id } = client.data.user;
-    await this.harvestPlantBlockLandUseCase.execute({
+  ): Promise<PlantInventoryPresenter> {
+    const { id } = client.user;
+    const output = await this.harvestPlantBlockLandUseCase.execute({
       userId: id,
       ...data,
     });
-    return data.blockPos;
+    return PlantInventoryController.plantInventoryToResponse(output);
   }
 
   @UseGuards(JwtWsGuard)
@@ -154,13 +172,13 @@ export class WebSocketServerGateway {
   public async theftPlantBlockLand(
     @ConnectedSocket() client: any,
     @MessageBody() data: TheftPlantBlockLandDTO,
-  ): Promise<TVector2> {
-    const { id } = client.data.user;
-    await this.theftPlantBlockLandUseCase.execute({
+  ): Promise<PlantInventoryPresenter> {
+    const { id } = client.user;
+    const output = await this.theftPlantBlockLandUseCase.execute({
       userId: id,
       ...data,
     });
-    return data.blockPos;
+    return PlantInventoryController.plantInventoryToResponse(output);
   }
 
   @UseGuards(JwtWsGuard)
@@ -168,13 +186,13 @@ export class WebSocketServerGateway {
   public async deleteStructBlockLand(
     @ConnectedSocket() client: any,
     @MessageBody() data: DeleteStructBlockLandDTO,
-  ): Promise<TVector2> {
-    const { id } = client.data.user;
-    await this.deleteStructBlockLandUseCase.execute({
+  ): Promise<StructInventoryPresenter> {
+    const { id } = client.user;
+    const output = await this.deleteStructBlockLandUseCase.execute({
       userId: id,
       ...data,
     });
-    return data.blockPos;
+    return StructInventoryController.structInventoryToResponse(output);
   }
 
   @UseGuards(JwtWsGuard)
@@ -182,12 +200,12 @@ export class WebSocketServerGateway {
   public async deleteDecorationBlockLand(
     @ConnectedSocket() client: any,
     @MessageBody() data: DeleteDecorationBlockLandDTO,
-  ): Promise<TVector2> {
-    const { id } = client.data.user;
-    await this.deleteDecorationBlockLandUseCase.execute({
+  ): Promise<DecorationInventoryPresenter> {
+    const { id } = client.user;
+    const output = await this.deleteDecorationBlockLandUseCase.execute({
       userId: id,
       ...data,
     });
-    return data.blockPos;
+    return DecorationInventoryController.decorationInventoryToResponse(output);
   }
 }

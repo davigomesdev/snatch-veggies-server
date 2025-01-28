@@ -24,11 +24,11 @@ export class BlockInventoryController {
     private readonly listBlockIventoriesUseCase: ListBlockIventoriesUseCase.UseCase,
   ) {}
 
-  private static blockInventoryToResponse(output: BlockInventoryOutput): BlockInventoryPresenter {
+  public static blockInventoryToResponse(output: BlockInventoryOutput): BlockInventoryPresenter {
     return new BlockInventoryPresenter(output);
   }
 
-  private static listBlockInventoriesToResponse(
+  public static listBlockInventoriesToResponse(
     output: ListBlockIventoriesUseCase.Output,
   ): BlockInventoryListPresenter {
     return new BlockInventoryListPresenter(output);

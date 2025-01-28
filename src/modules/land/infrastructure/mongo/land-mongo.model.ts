@@ -6,6 +6,7 @@ import { LandEntity } from '@modules/land/domain/land.entity';
 export class LandModel extends Document {
   public _id: Types.ObjectId;
   public userId: string;
+  public referrerId: string | null;
   public tokenId: number;
   public name: string;
   public exp: number;
@@ -17,6 +18,7 @@ export class LandModel extends Document {
   public static toEntity(model: LandModel): LandEntity {
     const data = {
       userId: model.userId,
+      referrerId: model.referrerId,
       tokenId: model.tokenId,
       name: model.name,
       exp: model.exp,

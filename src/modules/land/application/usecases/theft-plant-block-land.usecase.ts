@@ -16,6 +16,10 @@ import { PlantRepository } from '@modules/plant/domain/plant.repository';
 
 import { PlantInventoryEntity } from '@modules/plant-inventory/domain/plant-inventory.entity';
 import { PlantInventoryRepository } from '@modules/plant-inventory/domain/plant-inventory.repository';
+import {
+  PlantInventoryOutput,
+  PlantInventoryOutputMapper,
+} from '@modules/plant-inventory/application/output/plant-inventory.output';
 
 export namespace TheftPlantBlockLandUseCase {
   export type Input = {
@@ -25,7 +29,7 @@ export namespace TheftPlantBlockLandUseCase {
     blockPos: TVector2;
   };
 
-  export type Output = void;
+  export type Output = PlantInventoryOutput;
 
   export class UseCase implements IUseCase<Input, Output> {
     public constructor(
@@ -73,11 +77,11 @@ export namespace TheftPlantBlockLandUseCase {
         index: blockSetter.children.id,
       });
 
-      let plantInventory: PlantInventoryEntity;
+      let plantInventoryEntity: PlantInventoryEntity;
       const isExists = await this.plantInventoryRepository.isExists(land.id, plant.id);
 
       if (isExists) {
-        plantInventory = await this.plantInventoryRepository.find({
+        plantInventoryEntity = await this.plantInventoryRepository.find({
           landId: land.id,
           plantId: plant.id,
         });
@@ -90,7 +94,7 @@ export namespace TheftPlantBlockLandUseCase {
           harvest: 0,
         });
 
-        plantInventory = await this.plantInventoryRepository.create(entity);
+        plantInventoryEntity = await this.plantInventoryRepository.create(entity);
       }
 
       const theftPlantInventory = await this.plantInventoryRepository.find({
@@ -122,7 +126,7 @@ export namespace TheftPlantBlockLandUseCase {
 
       land.updateExp(land.exp + plant.exp);
 
-      plantInventory.updateHarvest(plantInventory.harvest + 1);
+      plantInventoryEntity.updateHarvest(plantInventoryEntity.harvest + 1);
       theftPlantInventory
         .updateAmount(theftPlantInventory.amount - 1)
         .updateInUse(theftPlantInventory.inUse - 1);
@@ -134,10 +138,12 @@ export namespace TheftPlantBlockLandUseCase {
 
       this.jsonFileService.updateFile(theftLand.tokenId.toString(), blocks);
 
-      await this.plantInventoryRepository.update(plantInventory);
+      const plantInventory = await this.plantInventoryRepository.update(plantInventoryEntity);
       await this.plantInventoryRepository.update(theftPlantInventory);
       await this.landRepository.update(theftLand);
       await this.landRepository.update(land);
+
+      return PlantInventoryOutputMapper.toOutput(plantInventory);
     }
   }
 }

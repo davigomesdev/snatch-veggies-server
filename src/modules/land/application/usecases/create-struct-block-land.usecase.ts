@@ -13,7 +13,12 @@ import { IUseCase } from '@application/usecases/use-case.interface';
 import { LandRepository } from '@modules/land/domain/land.repository';
 import { BlockRepository } from '@modules/block/domain/block.repository';
 import { StructRepository } from '@modules/struct/domain/struct.repository';
+
 import { StructInventoryRepository } from '@modules/struct-inventory/domain/struct-inventory.repository';
+import {
+  StructInventoryOutput,
+  StructInventoryOutputMapper,
+} from '@modules/struct-inventory/application/output/struct-inventory.output';
 
 export namespace CreateStructBlockLandUseCase {
   export type Input = {
@@ -23,7 +28,7 @@ export namespace CreateStructBlockLandUseCase {
     structIndex: number;
   };
 
-  export type Output = void;
+  export type Output = StructInventoryOutput;
 
   export class UseCase implements IUseCase<Input, Output> {
     public constructor(
@@ -61,14 +66,14 @@ export namespace CreateStructBlockLandUseCase {
         index: structIndex,
       });
 
-      const structInventory = await this.structInventoryRepository.find({
+      const structInventoryEntity = await this.structInventoryRepository.find({
         landId: land.id,
         structId: struct.id,
       });
 
-      structInventory.updateInUse(structInventory.inUse + 1);
+      structInventoryEntity.updateInUse(structInventoryEntity.inUse + 1);
 
-      if (structInventory.inUse > structInventory.amount) {
+      if (structInventoryEntity.inUse > structInventoryEntity.amount) {
         throw new WsBadRequestError('Insufficient amount.');
       }
 
@@ -88,8 +93,10 @@ export namespace CreateStructBlockLandUseCase {
 
       blocks[blockPos.y][blockPos.x] = blockSetter;
 
-      await this.structInventoryRepository.update(structInventory);
+      const structInventory = await this.structInventoryRepository.update(structInventoryEntity);
       this.jsonFileService.updateFile(land.tokenId.toString(), blocks);
+
+      return StructInventoryOutputMapper.toOutput(structInventory);
     }
 
     private async validateAdjacentBlocks(

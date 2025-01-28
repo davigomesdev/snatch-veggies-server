@@ -11,7 +11,12 @@ import { IUseCase } from '@application/usecases/use-case.interface';
 
 import { LandRepository } from '@modules/land/domain/land.repository';
 import { DecorationRepository } from '@modules/decoration/domain/decoration.repository';
+
 import { DecorationInventoryRepository } from '@modules/decoration-inventory/domain/decoration-inventory.repository';
+import {
+  DecorationInventoryOutput,
+  DecorationInventoryOutputMapper,
+} from '@modules/decoration-inventory/application/output/decoration-inventory.output';
 
 export namespace DeleteDecorationBlockLandUseCase {
   export type Input = {
@@ -20,7 +25,7 @@ export namespace DeleteDecorationBlockLandUseCase {
     blockPos: TVector2;
   };
 
-  export type Output = void;
+  export type Output = DecorationInventoryOutput;
 
   export class UseCase implements IUseCase<Input, Output> {
     public constructor(
@@ -52,12 +57,12 @@ export namespace DeleteDecorationBlockLandUseCase {
         index: blockSetter.children.id,
       });
 
-      const decorationInventory = await this.decorationInventoryRepository.find({
+      const decorationInventoryEntity = await this.decorationInventoryRepository.find({
         landId: land.id,
         decorationId: decoration.id,
       });
 
-      decorationInventory.updateInUse(decorationInventory.inUse - 1);
+      decorationInventoryEntity.updateInUse(decorationInventoryEntity.inUse - 1);
       const adjacentBlocks = this.getAdjacentBlocks(blocks, blockPos, decoration.size);
 
       adjacentBlocks.map((block) => {
@@ -69,8 +74,11 @@ export namespace DeleteDecorationBlockLandUseCase {
 
       blocks[blockPos.y][blockPos.x] = blockSetter;
 
-      await this.decorationInventoryRepository.update(decorationInventory);
+      const decorationInventory =
+        await this.decorationInventoryRepository.update(decorationInventoryEntity);
       this.jsonFileService.updateFile(land.tokenId.toString(), blocks);
+
+      return DecorationInventoryOutputMapper.toOutput(decorationInventory);
     }
 
     private getAdjacentBlocks(

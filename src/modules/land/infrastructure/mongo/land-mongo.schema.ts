@@ -6,6 +6,9 @@ export class Land extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   public userId: string;
 
+  @Prop({ type: Types.ObjectId, ref: 'Land', required: false })
+  public referrerId: string | null;
+
   @Prop({ required: true, unique: true })
   public tokenId: number;
 

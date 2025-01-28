@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
 
 import { JwtGuard } from '@application/guards/jwt-guard';
 
@@ -10,6 +10,7 @@ import { FindLandUseCase } from '../application/usecases/find-land.usecase';
 import { CreateLandUseCase } from '../application/usecases/create-land.usecase';
 
 import { FindLandDTO } from '../application/dtos/find-land.dto';
+import { CreateLandDTO } from '../application/dtos/create-land.dto';
 
 import { LandOutput } from '../application/output/land.output';
 import { LandListPresenter, LandPresenter } from './land.presenter';
@@ -33,8 +34,14 @@ export class LandController {
   @UseGuards(JwtGuard)
   @HttpCode(204)
   @Post('current')
-  public async currentCreate(@CurrentUser('id') userId: string): Promise<CreateLandUseCase.Output> {
-    await this.createLandUseCase.execute({ userId });
+  public async currentCreate(
+    @CurrentUser('id') userId: string,
+    @Body() data: CreateLandDTO,
+  ): Promise<CreateLandUseCase.Output> {
+    await this.createLandUseCase.execute({
+      userId,
+      ...data,
+    });
   }
 
   @UseGuards(JwtGuard)

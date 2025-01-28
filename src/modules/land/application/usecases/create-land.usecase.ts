@@ -9,18 +9,22 @@ import { LandEntity } from '@modules/land/domain/land.entity';
 import { LandRepository } from '@modules/land/domain/land.repository';
 
 import { UserRepository } from '@modules/user/domain/user.repository';
+import { PlantRepository } from '@modules/plant/domain/plant.repository';
 import { BlockRepository } from '@modules/block/domain/block.repository';
 import { DecorationRepository } from '@modules/decoration/domain/decoration.repository';
+import { PlantInventoryRepository } from '@modules/plant-inventory/domain/plant-inventory.repository';
 
 import { BlockInventoryEntity } from '@modules/block-inventory/domain/block-inventory.entity';
 import { BlockInventoryRepository } from '@modules/block-inventory/domain/block-inventory.repository';
 
 import { DecorationInventoryEntity } from '@modules/decoration-inventory/domain/decoration-inventory.entity';
 import { DecorationInventoryRepository } from '@modules/decoration-inventory/domain/decoration-inventory.repository';
+import { PlantInventoryEntity } from '@modules/plant-inventory/domain/plant-inventory.entity';
 
 export namespace CreateLandUseCase {
   export type Input = {
     userId: string;
+    referrerId?: string | null;
   };
 
   export type Output = void;
@@ -33,12 +37,16 @@ export namespace CreateLandUseCase {
       private readonly decorationRepository: DecorationRepository.Repository,
       private readonly blockInventoryRepository: BlockInventoryRepository.Repository,
       private readonly decorationInventoryRepository: DecorationInventoryRepository.Repository,
+      private readonly plantRepository: PlantRepository.Repository,
+      private readonly plantInventoryRepository: PlantInventoryRepository.Repository,
       private readonly snatchVeggiesLandService: SnatchVeggiesLandService,
       private readonly jsonFileService: JsonFileService,
     ) {}
 
     public async execute(input: Input): Promise<Output> {
-      const user = await this.userRepository.find({ id: input.userId });
+      const { userId, referrerId } = input;
+
+      const user = await this.userRepository.find({ id: userId });
 
       const currentLands = await this.landRepository.findAll({ userId: user.id });
       const tokens = await this.snatchVeggiesLandService.listTokenIdsByOwner(user.address);
@@ -62,6 +70,7 @@ export namespace CreateLandUseCase {
         } else {
           const landEntity = new LandEntity({
             userId: user.id,
+            referrerId,
             tokenId: Number(tokenId),
             name: `LAND #${tokenId.toString()}`,
           });
@@ -164,6 +173,10 @@ export namespace CreateLandUseCase {
             inUse: 6,
           });
 
+          if (referrerId) {
+            await this.rewardReferral(referrerId);
+          }
+
           await this.landRepository.create(landEntity);
 
           await this.blockInventoryRepository.createMany([
@@ -189,6 +202,36 @@ export namespace CreateLandUseCase {
 
         existingTokenIds.add(Number(tokenId));
       }
+    }
+
+    private async rewardReferral(referrerId: string): Promise<void> {
+      const land = await this.landRepository.find({ id: referrerId });
+      const plant = await this.plantRepository.find({ index: 0 });
+
+      let plantInventory: PlantInventoryEntity;
+      const isExists = await this.plantInventoryRepository.isExists(land.id, plant.id);
+
+      if (isExists) {
+        const entity = await this.plantInventoryRepository.find({
+          landId: land.id,
+          plantId: plant.id,
+        });
+
+        entity.updateAmount(entity.amount + 5);
+        plantInventory = await this.plantInventoryRepository.update(entity);
+      } else {
+        const entity = new PlantInventoryEntity({
+          landId: land.id,
+          plantId: plant.id,
+          amount: 5,
+          inUse: 0,
+          harvest: 0,
+        });
+
+        plantInventory = await this.plantInventoryRepository.create(entity);
+      }
+
+      await this.plantInventoryRepository.update(plantInventory);
     }
   }
 }

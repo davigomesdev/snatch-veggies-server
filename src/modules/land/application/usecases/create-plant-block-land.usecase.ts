@@ -12,7 +12,12 @@ import { IUseCase } from '@application/usecases/use-case.interface';
 import { LandRepository } from '@modules/land/domain/land.repository';
 import { BlockRepository } from '@modules/block/domain/block.repository';
 import { PlantRepository } from '@modules/plant/domain/plant.repository';
+
 import { PlantInventoryRepository } from '@modules/plant-inventory/domain/plant-inventory.repository';
+import {
+  PlantInventoryOutput,
+  PlantInventoryOutputMapper,
+} from '@modules/plant-inventory/application/output/plant-inventory.output';
 
 export namespace CreatePlantBlockLandUseCase {
   export type Input = {
@@ -22,7 +27,7 @@ export namespace CreatePlantBlockLandUseCase {
     plantIndex: number;
   };
 
-  export type Output = void;
+  export type Output = PlantInventoryOutput;
 
   export class UseCase implements IUseCase<Input, Output> {
     public constructor(
@@ -60,14 +65,14 @@ export namespace CreatePlantBlockLandUseCase {
         index: plantIndex,
       });
 
-      const plantInventory = await this.plantInventoryRepository.find({
+      const plantInventoryEntity = await this.plantInventoryRepository.find({
         landId: land.id,
         plantId: plant.id,
       });
 
-      plantInventory.updateInUse(plantInventory.inUse + 1);
+      plantInventoryEntity.updateInUse(plantInventoryEntity.inUse + 1);
 
-      if (plantInventory.inUse > plantInventory.amount) {
+      if (plantInventoryEntity.inUse > plantInventoryEntity.amount) {
         throw new WsBadRequestError('Insufficient amount.');
       }
 
@@ -80,8 +85,10 @@ export namespace CreatePlantBlockLandUseCase {
 
       blocks[blockPos.y][blockPos.x] = blockSetter;
 
-      await this.plantInventoryRepository.update(plantInventory);
+      const plantInventory = await this.plantInventoryRepository.update(plantInventoryEntity);
       this.jsonFileService.updateFile(land.tokenId.toString(), blocks);
+
+      return PlantInventoryOutputMapper.toOutput(plantInventory);
     }
   }
 }

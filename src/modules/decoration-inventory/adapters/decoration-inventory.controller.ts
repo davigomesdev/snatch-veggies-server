@@ -27,13 +27,13 @@ export class DecorationInventoryController {
     private readonly listDecorationIventoriesUseCase: ListDecorationIventoriesUseCase.UseCase,
   ) {}
 
-  private static decorationInventoryToResponse(
+  public static decorationInventoryToResponse(
     output: DecorationInventoryOutput,
   ): DecorationInventoryPresenter {
     return new DecorationInventoryPresenter(output);
   }
 
-  private static listDecorationInventoriesToResponse(
+  public static listDecorationInventoriesToResponse(
     output: ListDecorationIventoriesUseCase.Output,
   ): DecorationInventoryListPresenter {
     return new DecorationInventoryListPresenter(output);

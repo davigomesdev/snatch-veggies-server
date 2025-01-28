@@ -8,7 +8,12 @@ import { IUseCase } from '@application/usecases/use-case.interface';
 
 import { LandRepository } from '@modules/land/domain/land.repository';
 import { BlockRepository } from '@modules/block/domain/block.repository';
+
 import { BlockInventoryRepository } from '@modules/block-inventory/domain/block-inventory.repository';
+import {
+  BlockInventoryOutput,
+  BlockInventoryOutputMapper,
+} from '@modules/block-inventory/application/output/block-inventory.output';
 
 export namespace CreateBlockLandUseCase {
   export type Input = {
@@ -18,7 +23,10 @@ export namespace CreateBlockLandUseCase {
     blockIndex: number;
   };
 
-  export type Output = void;
+  export type Output = {
+    newBlockInventory: BlockInventoryOutput;
+    oldBlockInventory: BlockInventoryOutput;
+  };
 
   export class UseCase implements IUseCase<Input, Output> {
     public constructor(
@@ -51,22 +59,24 @@ export namespace CreateBlockLandUseCase {
         index: blockIndex,
       });
 
-      if (oldBlock.id === newBlock.id) return;
+      if (oldBlock.id === newBlock.id) {
+        throw new WsBadRequestError('You are wanting to exchange the same block.');
+      }
 
-      const oldBlockInventory = await this.blockInventoryRepository.find({
+      const oldBlockInventoryEntity = await this.blockInventoryRepository.find({
         landId: land.id,
         blockId: oldBlock.id,
       });
 
-      const newBlockInventory = await this.blockInventoryRepository.find({
+      const newBlockInventoryEntity = await this.blockInventoryRepository.find({
         landId: land.id,
         blockId: newBlock.id,
       });
 
-      oldBlockInventory.updateInUse(oldBlockInventory.inUse - 1);
-      newBlockInventory.updateInUse(newBlockInventory.inUse + 1);
+      oldBlockInventoryEntity.updateInUse(oldBlockInventoryEntity.inUse - 1);
+      newBlockInventoryEntity.updateInUse(newBlockInventoryEntity.inUse + 1);
 
-      if (newBlockInventory.inUse > newBlockInventory.amount) {
+      if (newBlockInventoryEntity.inUse > newBlockInventoryEntity.amount) {
         throw new WsBadRequestError('Insufficient amount.');
       }
 
@@ -76,10 +86,15 @@ export namespace CreateBlockLandUseCase {
         children: null,
       };
 
-      await this.blockInventoryRepository.update(newBlockInventory);
-      await this.blockInventoryRepository.update(oldBlockInventory);
+      const newBlockInventory = await this.blockInventoryRepository.update(newBlockInventoryEntity);
+      const oldBlockInventory = await this.blockInventoryRepository.update(oldBlockInventoryEntity);
 
       this.jsonFileService.updateFile(land.tokenId.toString(), blocks);
+
+      return {
+        newBlockInventory: BlockInventoryOutputMapper.toOutput(newBlockInventory),
+        oldBlockInventory: BlockInventoryOutputMapper.toOutput(oldBlockInventory),
+      };
     }
   }
 }

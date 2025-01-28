@@ -6,6 +6,7 @@ import { UserEntity } from '@modules/user/domain/user.entity';
 
 export type LandProps = {
   userId: string;
+  referrerId?: string | null;
   tokenId: number;
   name: string;
   exp?: number;
@@ -22,6 +23,7 @@ export class LandEntity extends Entity<LandProps, UserEntity> {
   ) {
     LandEntity.validate(props);
     super(props, id);
+    this.props.referrerId = this.props.referrerId || null;
     this.props.exp = this.props.exp ?? 0;
     this.props.lastTheftDate = this.props.lastTheftDate ?? new Date();
     this.props.lastStolenDate = this.props.lastStolenDate ?? new Date();
@@ -31,6 +33,10 @@ export class LandEntity extends Entity<LandProps, UserEntity> {
 
   public get userId(): string {
     return this.props.userId;
+  }
+
+  public get referrerId(): string | null {
+    return this.props.referrerId;
   }
 
   public get tokenId(): number {
@@ -63,6 +69,10 @@ export class LandEntity extends Entity<LandProps, UserEntity> {
 
   private set userId(value: string) {
     this.props.userId = value;
+  }
+
+  private set referrerId(value: string | null) {
+    this.props.referrerId = value;
   }
 
   private set tokenId(value: number) {
@@ -100,6 +110,16 @@ export class LandEntity extends Entity<LandProps, UserEntity> {
     });
 
     this.userId = value;
+    return this;
+  }
+
+  public updateReferrerId(value: string | null): LandEntity {
+    LandEntity.validate({
+      ...this.props,
+      referrerId: value,
+    });
+
+    this.referrerId = value;
     return this;
   }
 

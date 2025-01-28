@@ -142,6 +142,8 @@ import { DeleteDecorationBlockLandUseCase } from '../application/usecases/delete
         decorationRepository: DecorationRepository.Repository,
         blockInventoryRepository: BlockInventoryRepository.Repository,
         decorationInventoryRepository: DecorationInventoryRepository.Repository,
+        plantRepository: PlantRepository.Repository,
+        plantInventoryRepository: PlantInventoryRepository.Repository,
         snatchVeggiesLandService: SnatchVeggiesLandService,
         jsonFileService: JsonFileService,
       ): CreateLandUseCase.UseCase => {
@@ -152,6 +154,8 @@ import { DeleteDecorationBlockLandUseCase } from '../application/usecases/delete
           decorationRepository,
           blockInventoryRepository,
           decorationInventoryRepository,
+          plantRepository,
+          plantInventoryRepository,
           snatchVeggiesLandService,
           jsonFileService,
         );
@@ -163,6 +167,8 @@ import { DeleteDecorationBlockLandUseCase } from '../application/usecases/delete
         'DecorationRepository',
         'BlockInventoryRepository',
         'DecorationInventoryRepository',
+        'PlantRepository',
+        'PlantInventoryRepository',
         'SnatchVeggiesLandService',
         'JsonFileService',
       ],

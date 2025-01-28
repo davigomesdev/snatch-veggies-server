@@ -13,7 +13,12 @@ import { IUseCase } from '@application/usecases/use-case.interface';
 import { LandRepository } from '@modules/land/domain/land.repository';
 import { BlockRepository } from '@modules/block/domain/block.repository';
 import { DecorationRepository } from '@modules/decoration/domain/decoration.repository';
+
 import { DecorationInventoryRepository } from '@modules/decoration-inventory/domain/decoration-inventory.repository';
+import {
+  DecorationInventoryOutput,
+  DecorationInventoryOutputMapper,
+} from '@modules/decoration-inventory/application/output/decoration-inventory.output';
 
 export namespace CreateDecorationBlockLandUseCase {
   export type Input = {
@@ -23,7 +28,7 @@ export namespace CreateDecorationBlockLandUseCase {
     decorationIndex: number;
   };
 
-  export type Output = void;
+  export type Output = DecorationInventoryOutput;
 
   export class UseCase implements IUseCase<Input, Output> {
     public constructor(
@@ -61,14 +66,14 @@ export namespace CreateDecorationBlockLandUseCase {
         index: decorationIndex,
       });
 
-      const decorationInventory = await this.decorationInventoryRepository.find({
+      const decorationInventoryEntity = await this.decorationInventoryRepository.find({
         landId: land.id,
         decorationId: decoration.id,
       });
 
-      decorationInventory.updateInUse(decorationInventory.inUse + 1);
+      decorationInventoryEntity.updateInUse(decorationInventoryEntity.inUse + 1);
 
-      if (decorationInventory.inUse > decorationInventory.amount) {
+      if (decorationInventoryEntity.inUse > decorationInventoryEntity.amount) {
         throw new WsBadRequestError('Insufficient amount.');
       }
 
@@ -87,9 +92,11 @@ export namespace CreateDecorationBlockLandUseCase {
 
       blocks[blockPos.y][blockPos.x] = blockSetter;
 
-      await this.decorationInventoryRepository.update(decorationInventory);
-
+      const decorationInventory =
+        await this.decorationInventoryRepository.update(decorationInventoryEntity);
       this.jsonFileService.updateFile(land.tokenId.toString(), blocks);
+
+      return DecorationInventoryOutputMapper.toOutput(decorationInventory);
     }
 
     private async validateAdjacentBlocks(

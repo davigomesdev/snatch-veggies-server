@@ -27,11 +27,11 @@ export class PlantInventoryController {
     private readonly listPlantIventoriesUseCase: ListPlantIventoriesUseCase.UseCase,
   ) {}
 
-  private static plantInventoryToResponse(output: PlantInventoryOutput): PlantInventoryPresenter {
+  public static plantInventoryToResponse(output: PlantInventoryOutput): PlantInventoryPresenter {
     return new PlantInventoryPresenter(output);
   }
 
-  private static listPlantInventoriesToResponse(
+  public static listPlantInventoriesToResponse(
     output: ListPlantIventoriesUseCase.Output,
   ): PlantInventoryListPresenter {
     return new PlantInventoryListPresenter(output);

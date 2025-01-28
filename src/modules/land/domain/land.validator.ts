@@ -9,6 +9,10 @@ export class UseRules {
   @IsNotEmpty()
   public userId: string;
 
+  @IsString()
+  @IsOptional()
+  public referrerId?: string;
+
   @IsInt()
   @IsNotEmpty()
   public tokenId: number;

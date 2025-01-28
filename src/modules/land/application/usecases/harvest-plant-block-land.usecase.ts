@@ -12,7 +12,12 @@ import { IUseCase } from '@application/usecases/use-case.interface';
 
 import { LandRepository } from '@modules/land/domain/land.repository';
 import { PlantRepository } from '@modules/plant/domain/plant.repository';
+
 import { PlantInventoryRepository } from '@modules/plant-inventory/domain/plant-inventory.repository';
+import {
+  PlantInventoryOutput,
+  PlantInventoryOutputMapper,
+} from '@modules/plant-inventory/application/output/plant-inventory.output';
 
 export namespace HarvestPlantBlockLandUseCase {
   export type Input = {
@@ -21,7 +26,7 @@ export namespace HarvestPlantBlockLandUseCase {
     blockPos: TVector2;
   };
 
-  export type Output = void;
+  export type Output = PlantInventoryOutput;
 
   export class UseCase implements IUseCase<Input, Output> {
     public constructor(
@@ -50,7 +55,7 @@ export namespace HarvestPlantBlockLandUseCase {
         index: blockSetter.children.id,
       });
 
-      const plantInventory = await this.plantInventoryRepository.find({
+      const plantInventoryEntity = await this.plantInventoryRepository.find({
         landId: land.id,
         plantId: plant.id,
       });
@@ -62,10 +67,10 @@ export namespace HarvestPlantBlockLandUseCase {
       }
 
       land.updateExp(land.exp + plant.exp);
-      plantInventory
-        .updateHarvest(plantInventory.harvest + 1)
-        .updateAmount(plantInventory.amount - 1)
-        .updateInUse(plantInventory.inUse - 1);
+      plantInventoryEntity
+        .updateHarvest(plantInventoryEntity.harvest + 1)
+        .updateAmount(plantInventoryEntity.amount - 1)
+        .updateInUse(plantInventoryEntity.inUse - 1);
 
       blockSetter.occupied = false;
       blockSetter.children = null;
@@ -74,8 +79,10 @@ export namespace HarvestPlantBlockLandUseCase {
 
       this.jsonFileService.updateFile(land.tokenId.toString(), blocks);
 
-      await this.plantInventoryRepository.update(plantInventory);
+      const plantInventory = await this.plantInventoryRepository.update(plantInventoryEntity);
       await this.landRepository.update(land);
+
+      return PlantInventoryOutputMapper.toOutput(plantInventory);
     }
   }
 }

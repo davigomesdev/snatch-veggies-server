@@ -11,7 +11,12 @@ import { IUseCase } from '@application/usecases/use-case.interface';
 
 import { LandRepository } from '@modules/land/domain/land.repository';
 import { StructRepository } from '@modules/struct/domain/struct.repository';
+
 import { StructInventoryRepository } from '@modules/struct-inventory/domain/struct-inventory.repository';
+import {
+  StructInventoryOutput,
+  StructInventoryOutputMapper,
+} from '@modules/struct-inventory/application/output/struct-inventory.output';
 
 export namespace DeleteStructBlockLandUseCase {
   export type Input = {
@@ -20,7 +25,7 @@ export namespace DeleteStructBlockLandUseCase {
     blockPos: TVector2;
   };
 
-  export type Output = void;
+  export type Output = StructInventoryOutput;
 
   export class UseCase implements IUseCase<Input, Output> {
     public constructor(
@@ -49,12 +54,12 @@ export namespace DeleteStructBlockLandUseCase {
         index: blockSetter.children.id,
       });
 
-      const structInventory = await this.structInventoryRepository.find({
+      const structInventoryEntity = await this.structInventoryRepository.find({
         landId: land.id,
         structId: struct.id,
       });
 
-      structInventory.updateInUse(structInventory.inUse - 1);
+      structInventoryEntity.updateInUse(structInventoryEntity.inUse - 1);
       const adjacentBlocks = this.getAdjacentBlocks(blocks, blockPos, struct.size);
 
       adjacentBlocks.map((block) => {
@@ -67,7 +72,9 @@ export namespace DeleteStructBlockLandUseCase {
       blocks[blockPos.y][blockPos.x] = blockSetter;
 
       this.jsonFileService.updateFile(land.tokenId.toString(), blocks);
-      await this.structInventoryRepository.update(structInventory);
+      const structInventory = await this.structInventoryRepository.update(structInventoryEntity);
+
+      return StructInventoryOutputMapper.toOutput(structInventory);
     }
 
     private getAdjacentBlocks(

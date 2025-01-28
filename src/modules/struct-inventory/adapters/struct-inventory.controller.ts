@@ -30,13 +30,11 @@ export class StructInventoryController {
     private readonly listStructIventoriesUseCase: ListStructIventoriesUseCase.UseCase,
   ) {}
 
-  private static structInventoryToResponse(
-    output: StructInventoryOutput,
-  ): StructInventoryPresenter {
+  public static structInventoryToResponse(output: StructInventoryOutput): StructInventoryPresenter {
     return new StructInventoryPresenter(output);
   }
 
-  private static listStructInventoriesToResponse(
+  public static listStructInventoriesToResponse(
     output: ListStructIventoriesUseCase.Output,
   ): StructInventoryListPresenter {
     return new StructInventoryListPresenter(output);
